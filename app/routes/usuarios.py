@@ -5,6 +5,7 @@ from flask_login import login_required, current_user
 
 from app import db
 from app.models.usuario import Usuario
+from app.models.empresa import Empresa
 
 
 usuarios_bp = Blueprint(
@@ -28,7 +29,12 @@ def somente_admin(func):
     return wrapper
 
 
-def buscar_usuario_da_empresa(usuario_id):
+def buscar_usuario(usuario_id):
+
+    if current_user.perfil == "master":
+        return Usuario.query.filter_by(
+            id=usuario_id
+        ).first_or_404()
 
     return Usuario.query.filter_by(
         id=usuario_id,
@@ -41,11 +47,16 @@ def buscar_usuario_da_empresa(usuario_id):
 @somente_admin
 def listar():
 
-    usuarios = Usuario.query.filter_by(
-        empresa_id=current_user.empresa_id
-    ).order_by(
-        Usuario.nome.asc()
-    ).all()
+    if current_user.perfil == "master":
+        usuarios = Usuario.query.order_by(
+            Usuario.nome.asc()
+        ).all()
+    else:
+        usuarios = Usuario.query.filter_by(
+            empresa_id=current_user.empresa_id
+        ).order_by(
+            Usuario.nome.asc()
+        ).all()
 
     return render_template(
         "usuarios/listar.html",
@@ -58,6 +69,15 @@ def listar():
 @somente_admin
 def novo():
 
+    empresas = []
+
+    if current_user.perfil == "master":
+        empresas = Empresa.query.filter_by(
+            ativa=True
+        ).order_by(
+            Empresa.nome.asc()
+        ).all()
+
     if request.method == "POST":
 
         nome = request.form.get("nome")
@@ -65,6 +85,40 @@ def novo():
         senha = request.form.get("senha")
         perfil = request.form.get("perfil")
         ativo = True if request.form.get("ativo") == "on" else False
+
+        empresa_id = current_user.empresa_id
+
+        if current_user.perfil == "master":
+
+            tipo_empresa = request.form.get("tipo_empresa")
+
+            if tipo_empresa == "nova":
+
+                nome_empresa = request.form.get("nome_empresa")
+
+                if not nome_empresa:
+                    flash("Informe o nome da nova empresa.", "warning")
+                    return redirect(url_for("usuarios.novo"))
+
+                empresa = Empresa(
+                    nome=nome_empresa,
+                    ativa=True
+                )
+
+                db.session.add(empresa)
+                db.session.commit()
+
+                empresa_id = empresa.id
+
+            else:
+
+                empresa_id = request.form.get("empresa_id")
+
+                if not empresa_id:
+                    flash("Selecione uma empresa existente.", "warning")
+                    return redirect(url_for("usuarios.novo"))
+
+                empresa_id = int(empresa_id)
 
         usuario_existente = Usuario.query.filter_by(
             email=email
@@ -75,7 +129,7 @@ def novo():
             return redirect(url_for("usuarios.novo"))
 
         usuario = Usuario(
-            empresa_id=current_user.empresa_id,
+            empresa_id=empresa_id,
             nome=nome,
             email=email,
             perfil=perfil,
@@ -91,7 +145,10 @@ def novo():
 
         return redirect(url_for("usuarios.listar"))
 
-    return render_template("usuarios/form.html")
+    return render_template(
+        "usuarios/form.html",
+        empresas=empresas
+    )
 
 
 @usuarios_bp.route("/editar/<int:usuario_id>", methods=["GET", "POST"])
@@ -99,7 +156,16 @@ def novo():
 @somente_admin
 def editar(usuario_id):
 
-    usuario = buscar_usuario_da_empresa(usuario_id)
+    usuario = buscar_usuario(usuario_id)
+
+    empresas = []
+
+    if current_user.perfil == "master":
+        empresas = Empresa.query.filter_by(
+            ativa=True
+        ).order_by(
+            Empresa.nome.asc()
+        ).all()
 
     if request.method == "POST":
 
@@ -107,6 +173,12 @@ def editar(usuario_id):
         usuario.email = request.form.get("email")
         usuario.perfil = request.form.get("perfil")
         usuario.ativo = True if request.form.get("ativo") == "on" else False
+
+        if current_user.perfil == "master":
+            empresa_id = request.form.get("empresa_id")
+
+            if empresa_id:
+                usuario.empresa_id = int(empresa_id)
 
         nova_senha = request.form.get("senha")
 
@@ -121,7 +193,8 @@ def editar(usuario_id):
 
     return render_template(
         "usuarios/form.html",
-        usuario=usuario
+        usuario=usuario,
+        empresas=empresas
     )
 
 
@@ -130,7 +203,7 @@ def editar(usuario_id):
 @somente_admin
 def alternar_status(usuario_id):
 
-    usuario = buscar_usuario_da_empresa(usuario_id)
+    usuario = buscar_usuario(usuario_id)
 
     if usuario.id == current_user.id:
         flash("Você não pode desativar seu próprio usuário.", "warning")

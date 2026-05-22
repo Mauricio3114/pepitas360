@@ -6,19 +6,90 @@
     {% if usuario %}
         <h1>Editar usuário</h1>
         <p style="margin-top:8px;color:#94a3b8;">
-            Atualize dados, perfil e acesso do usuário.
+            Atualize dados, perfil, empresa e acesso do usuário.
         </p>
     {% else %}
         <h1>Novo usuário</h1>
         <p style="margin-top:8px;color:#94a3b8;">
-            Cadastre um novo acesso para a empresa.
+            Cadastre um novo acesso e vincule a uma empresa.
         </p>
     {% endif %}
 </div>
 
-<div class="card" style="margin-top:22px;max-width:850px;">
+<div class="card" style="margin-top:22px;max-width:900px;">
 
     <form method="POST">
+
+        {% if current_user.perfil == "master" and not usuario %}
+
+        <div style="
+            padding:18px;
+            border-radius:18px;
+            background:#020617;
+            border:1px solid rgba(255,255,255,.06);
+            margin-bottom:22px;
+        ">
+
+            <h3>Empresa do usuário</h3>
+
+            <p style="margin-top:6px;color:#94a3b8;font-size:14px;">
+                Escolha uma empresa existente ou crie uma nova empresa para este usuário.
+            </p>
+
+            <label style="display:flex;align-items:center;gap:10px;margin-top:18px;margin-bottom:12px;">
+                <input type="radio"
+                       name="tipo_empresa"
+                       value="existente"
+                       checked
+                       style="width:auto;margin:0;"
+                       onclick="alternarEmpresa()">
+                Usar empresa existente
+            </label>
+
+            <div id="boxEmpresaExistente">
+                <label>Empresa existente</label>
+                <select name="empresa_id">
+                    <option value="">Selecione uma empresa</option>
+                    {% for empresa in empresas %}
+                    <option value="{{ empresa.id }}">
+                        {{ empresa.nome }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <label style="display:flex;align-items:center;gap:10px;margin-top:8px;margin-bottom:12px;">
+                <input type="radio"
+                       name="tipo_empresa"
+                       value="nova"
+                       style="width:auto;margin:0;"
+                       onclick="alternarEmpresa()">
+                Criar nova empresa
+            </label>
+
+            <div id="boxEmpresaNova" style="display:none;">
+                <label>Nome da nova empresa</label>
+                <input type="text"
+                       name="nome_empresa"
+                       placeholder="Ex: Empresa Fabio, Empresa Josy...">
+            </div>
+
+        </div>
+
+        {% endif %}
+
+        {% if current_user.perfil == "master" and usuario %}
+
+        <label>Empresa vinculada</label>
+        <select name="empresa_id" required>
+            {% for empresa in empresas %}
+            <option value="{{ empresa.id }}" {% if usuario.empresa_id == empresa.id %}selected{% endif %}>
+                {{ empresa.nome }}
+            </option>
+            {% endfor %}
+        </select>
+
+        {% endif %}
 
         <label>Nome</label>
         <input type="text" name="nome" required
@@ -35,9 +106,15 @@
                placeholder="{% if usuario %}Deixe em branco para manter a senha atual{% else %}Senha inicial do usuário{% endif %}">
 
         <label>Perfil de acesso</label>
-        {% set perfil_atual = usuario.perfil if usuario else 'visualizador' %}
+        {% set perfil_atual = usuario.perfil if usuario else 'admin' %}
 
         <select name="perfil" required>
+            {% if current_user.perfil == "master" %}
+            <option value="master" {% if perfil_atual == "master" %}selected{% endif %}>
+                Master - acesso total ao sistema
+            </option>
+            {% endif %}
+
             <option value="admin" {% if perfil_atual == "admin" %}selected{% endif %}>
                 Admin - acesso total da empresa
             </option>
@@ -80,5 +157,21 @@
     </form>
 
 </div>
+
+<script>
+function alternarEmpresa(){
+    const tipo = document.querySelector('input[name="tipo_empresa"]:checked').value;
+    const boxExistente = document.getElementById("boxEmpresaExistente");
+    const boxNova = document.getElementById("boxEmpresaNova");
+
+    if(tipo === "nova"){
+        boxExistente.style.display = "none";
+        boxNova.style.display = "block";
+    }else{
+        boxExistente.style.display = "block";
+        boxNova.style.display = "none";
+    }
+}
+</script>
 
 {% endblock %}
