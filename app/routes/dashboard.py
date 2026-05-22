@@ -1,12 +1,29 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request
 from flask_login import login_required, current_user
 
 from app.models.compromisso import Compromisso
+from app.models.empresa import Empresa
 
 from datetime import date, timedelta
 
 
 dashboard_bp = Blueprint("dashboard", __name__)
+
+
+def aplicar_filtro_empresa(query, empresa_id=None):
+
+    if current_user.perfil == "master":
+
+        if empresa_id:
+            return query.filter(
+                Compromisso.empresa_id == empresa_id
+            )
+
+        return query
+
+    return query.filter(
+        Compromisso.empresa_id == current_user.empresa_id
+    )
 
 
 @dashboard_bp.route("/dashboard")
@@ -25,46 +42,81 @@ def index():
 
     fim_semana = hoje + timedelta(days=7)
 
-    pagamentos_hoje = Compromisso.query.filter(
-        Compromisso.empresa_id == current_user.empresa_id,
+    empresa_id = request.args.get("empresa_id", type=int)
+
+    empresas = []
+
+    if current_user.perfil == "master":
+        empresas = Empresa.query.filter_by(
+            ativa=True
+        ).order_by(
+            Empresa.nome.asc()
+        ).all()
+
+    pagamentos_hoje_query = Compromisso.query.filter(
         Compromisso.data_vencimento == hoje,
         Compromisso.status != "pago"
-    ).all()
+    )
 
-    pagamentos_semana = Compromisso.query.filter(
-        Compromisso.empresa_id == current_user.empresa_id,
+    pagamentos_semana_query = Compromisso.query.filter(
         Compromisso.data_vencimento >= hoje,
         Compromisso.data_vencimento <= fim_semana,
         Compromisso.status != "pago"
-    ).all()
+    )
 
-    pagamentos_mes = Compromisso.query.filter(
-        Compromisso.empresa_id == current_user.empresa_id,
+    pagamentos_mes_query = Compromisso.query.filter(
         Compromisso.data_vencimento >= inicio_mes,
         Compromisso.data_vencimento < fim_mes,
         Compromisso.status != "pago"
-    ).all()
+    )
 
-    vencidos = Compromisso.query.filter(
-        Compromisso.empresa_id == current_user.empresa_id,
+    vencidos_query = Compromisso.query.filter(
         Compromisso.data_vencimento < hoje,
         Compromisso.status != "pago"
+    )
+
+    proximos_query = Compromisso.query.filter(
+        Compromisso.data_vencimento >= hoje,
+        Compromisso.status != "pago"
+    )
+
+    alertas_query = Compromisso.query.filter(
+        Compromisso.status != "pago",
+        Compromisso.data_vencimento <= limite_alertas
+    )
+
+    pagamentos_hoje = aplicar_filtro_empresa(
+        pagamentos_hoje_query,
+        empresa_id
+    ).all()
+
+    pagamentos_semana = aplicar_filtro_empresa(
+        pagamentos_semana_query,
+        empresa_id
+    ).all()
+
+    pagamentos_mes = aplicar_filtro_empresa(
+        pagamentos_mes_query,
+        empresa_id
+    ).all()
+
+    vencidos = aplicar_filtro_empresa(
+        vencidos_query,
+        empresa_id
     ).order_by(
         Compromisso.data_vencimento.asc()
     ).all()
 
-    proximos = Compromisso.query.filter(
-        Compromisso.empresa_id == current_user.empresa_id,
-        Compromisso.data_vencimento >= hoje,
-        Compromisso.status != "pago"
+    proximos = aplicar_filtro_empresa(
+        proximos_query,
+        empresa_id
     ).order_by(
         Compromisso.data_vencimento.asc()
     ).limit(5).all()
 
-    compromissos_alerta = Compromisso.query.filter(
-        Compromisso.empresa_id == current_user.empresa_id,
-        Compromisso.status != "pago",
-        Compromisso.data_vencimento <= limite_alertas
+    compromissos_alerta = aplicar_filtro_empresa(
+        alertas_query,
+        empresa_id
     ).order_by(
         Compromisso.data_vencimento.asc()
     ).all()
@@ -122,5 +174,7 @@ def index():
         total_mes=total_mes,
         vencidos=vencidos,
         proximos=proximos,
-        alertas=alertas
+        alertas=alertas,
+        empresas=empresas,
+        empresa_id=empresa_id
     )

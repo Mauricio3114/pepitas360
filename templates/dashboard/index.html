@@ -3,11 +3,33 @@
 {% block content %}
 
 <div class="card">
-    <h1>Bem-vindo, {{ usuario.nome }}</h1>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;">
 
-    <p style="margin-top:8px;color:#94a3b8;">
-        Visão geral financeira e administrativa do Grupo Pepitas.
-    </p>
+        <div>
+            <h1>Bem-vindo, {{ usuario.nome }}</h1>
+
+            <p style="margin-top:8px;color:#94a3b8;">
+                Visão geral financeira e administrativa do Grupo Pepitas.
+            </p>
+        </div>
+
+        {% if usuario.perfil == "master" %}
+        <form method="GET" style="min-width:260px;">
+            <label>Empresa</label>
+
+            <select name="empresa_id" onchange="this.form.submit()">
+                <option value="">Todas as empresas</option>
+
+                {% for empresa in empresas %}
+                <option value="{{ empresa.id }}" {% if empresa_id == empresa.id %}selected{% endif %}>
+                    {{ empresa.nome }}
+                </option>
+                {% endfor %}
+            </select>
+        </form>
+        {% endif %}
+
+    </div>
 
     <div style="margin-top:22px;display:flex;gap:12px;flex-wrap:wrap;">
         <a href="{{ url_for('compromissos.novo') }}" class="btn">
