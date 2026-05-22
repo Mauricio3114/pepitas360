@@ -452,25 +452,6 @@ def excluir(compromisso_id):
         compromisso_id
     )
 
-    modulo = modulo_por_tipo(
-        compromisso.tipo
-    )
-
-    if not current_user.pode_acessar(modulo):
-
-        flash(
-            "Você não possui permissão para excluir neste módulo.",
-            "danger"
-        )
-
-        return redirect(
-            url_for("dashboard.index")
-        )
-
-    destino = destino_por_tipo(
-        compromisso.tipo
-    )
-
     db.session.delete(compromisso)
     db.session.commit()
 
@@ -480,5 +461,5 @@ def excluir(compromisso_id):
     )
 
     return redirect(
-        url_for(destino)
+        request.referrer or url_for("dashboard.index")
     )
