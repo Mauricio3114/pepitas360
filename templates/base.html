@@ -877,35 +877,36 @@
 
 </div>
 
-<div class="mobile-menu">
+<div class="mobile-bottom-menu">
 
-    <a href="{{ url_for('dashboard.index') }}">
+    <a href="{{ url_for('dashboard.index') }}"
+       class="{% if request.endpoint == 'dashboard.index' %}active{% endif %}">
         <span>🏠</span>
-        <span>Início</span>
+        <small>Início</small>
     </a>
 
-    {% if current_user.pode_acessar("agenda") %}
-    <a href="{{ url_for('compromissos.agenda') }}">
+    <a href="{{ url_for('compromissos.agenda') }}"
+       class="{% if request.endpoint == 'compromissos.agenda' %}active{% endif %}">
         <span>📅</span>
-        <span>Agenda</span>
-    </a>
-    {% endif %}
-
-    <a href="{{ url_for('compromissos.novo') }}">
-        <span>➕</span>
-        <span>Novo</span>
+        <small>Agenda</small>
     </a>
 
-    {% if current_user.pode_acessar("pagamentos") %}
-    <a href="{{ url_for('compromissos.pagamentos') }}">
+    <a href="{{ url_for('compromissos.calendario') }}"
+       class="{% if request.endpoint == 'compromissos.calendario' %}active{% endif %}">
+        <span>🗓️</span>
+        <small>Calendário</small>
+    </a>
+
+    <a href="{{ url_for('compromissos.pagamentos') }}"
+       class="{% if request.endpoint == 'compromissos.pagamentos' %}active{% endif %}">
         <span>💰</span>
-        <span>Pagamentos</span>
+        <small>Pagamentos</small>
     </a>
-    {% endif %}
 
-    <a href="{{ url_for('auth.logout') }}">
-        <span>🚪</span>
-        <span>Sair</span>
+    <a href="{{ url_for('relatorios.index') }}"
+       class="{% if request.endpoint == 'relatorios.index' %}active{% endif %}">
+        <span>📊</span>
+        <small>Relatórios</small>
     </a>
 
 </div>
