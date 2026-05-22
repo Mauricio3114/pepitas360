@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;">
+        <div>
+            <h1>Pagamentos</h1>
+            <p style="margin-top:8px;color:#94a3b8;">
+                Boletos, transferências, PIX, dinheiro em espécie e despesas.
+            </p>
+        </div>
+
+        <a href="{{ url_for('compromissos.novo') }}" class="btn">
+            + Novo pagamento
+        </a>
+    </div>
+</div>
+
+<div class="card" style="margin-top:22px;overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;min-width:900px;">
+        <thead>
+            <tr style="color:#94a3b8;text-align:left;border-bottom:1px solid rgba(255,255,255,.08);">
+                <th style="padding:16px;">Título</th>
+                <th style="padding:16px;">Forma</th>
+                <th style="padding:16px;">Valor</th>
+                <th style="padding:16px;">Vencimento</th>
+                <th style="padding:16px;">Status</th>
+                <th style="padding:16px;">Ações</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for item in compromissos %}
+
+            {% set cor_status = "#1e293b" %}
+            {% set texto_status = item.status %}
+
+            {% if item.status == "pago" %}
+                {% set cor_status = "#166534" %}
+                {% set texto_status = "Pago" %}
+            {% elif item.status == "pendente" %}
+                {% set cor_status = "#92400e" %}
+                {% set texto_status = "Pendente" %}
+            {% elif item.status == "vencido" %}
+                {% set cor_status = "#991b1b" %}
+                {% set texto_status = "Vencido" %}
+            {% elif item.status == "cancelado" %}
+                {% set cor_status = "#334155" %}
+                {% set texto_status = "Cancelado" %}
+            {% endif %}
+
+            <tr style="border-top:1px solid rgba(255,255,255,.06);">
+                <td style="padding:16px;">
+                    <strong>{{ item.titulo }}</strong>
+                    {% if item.descricao %}
+                    <div style="color:#94a3b8;font-size:13px;margin-top:5px;">
+                        {{ item.descricao }}
+                    </div>
+                    {% endif %}
+                </td>
+
+                <td style="padding:16px;">
+                    {{ item.forma_pagamento or item.tipo }}
+                </td>
+
+                <td style="padding:16px;white-space:nowrap;">
+                    <strong>R$ {{ "%.2f"|format(item.valor) }}</strong>
+                </td>
+
+                <td style="padding:16px;white-space:nowrap;">
+                    {{ item.data_vencimento.strftime("%d/%m/%Y") }}
+                </td>
+
+                <td style="padding:16px;">
+                    <span style="
+                        background:{{ cor_status }};
+                        padding:8px 14px;
+                        border-radius:999px;
+                        font-size:12px;
+                        font-weight:800;
+                        color:white;
+                    ">
+                        {{ texto_status }}
+                    </span>
+                </td>
+
+                <td style="padding:16px;">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+
+                        <a href="{{ url_for('compromissos.editar', compromisso_id=item.id) }}"
+                           class="btn btn-secondary"
+                           style="padding:9px 14px;font-size:13px;border-radius:12px;">
+                            Editar
+                        </a>
+
+                        <a href="{{ url_for('compromissos.excluir', compromisso_id=item.id) }}"
+                           onclick="return confirm('Tem certeza que deseja excluir este pagamento?')"
+                           style="
+                                background:linear-gradient(90deg,#991b1b,#7f1d1d);
+                                color:white;
+                                text-decoration:none;
+                                padding:9px 14px;
+                                border-radius:12px;
+                                font-size:13px;
+                                font-weight:800;
+                                box-shadow:0 10px 20px rgba(0,0,0,.18);
+                           ">
+                            Excluir
+                        </a>
+
+                    </div>
+                </td>
+            </tr>
+
+            {% else %}
+            <tr>
+                <td colspan="6" style="padding:40px;text-align:center;color:#94a3b8;">
+                    Nenhum pagamento cadastrado ainda.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

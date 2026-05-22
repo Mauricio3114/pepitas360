@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+    {% if usuario %}
+        <h1>Editar usuário</h1>
+        <p style="margin-top:8px;color:#94a3b8;">
+            Atualize dados, perfil e acesso do usuário.
+        </p>
+    {% else %}
+        <h1>Novo usuário</h1>
+        <p style="margin-top:8px;color:#94a3b8;">
+            Cadastre um novo acesso para a empresa.
+        </p>
+    {% endif %}
+</div>
+
+<div class="card" style="margin-top:22px;max-width:850px;">
+
+    <form method="POST">
+
+        <label>Nome</label>
+        <input type="text" name="nome" required
+               value="{{ usuario.nome if usuario else '' }}">
+
+        <label>E-mail</label>
+        <input type="email" name="email" required
+               value="{{ usuario.email if usuario else '' }}">
+
+        <label>Senha</label>
+        <input type="password"
+               name="senha"
+               {% if not usuario %}required{% endif %}
+               placeholder="{% if usuario %}Deixe em branco para manter a senha atual{% else %}Senha inicial do usuário{% endif %}">
+
+        <label>Perfil de acesso</label>
+        {% set perfil_atual = usuario.perfil if usuario else 'visualizador' %}
+
+        <select name="perfil" required>
+            <option value="admin" {% if perfil_atual == "admin" %}selected{% endif %}>
+                Admin - acesso total da empresa
+            </option>
+
+            <option value="financeiro" {% if perfil_atual == "financeiro" %}selected{% endif %}>
+                Financeiro - pagamentos, comprovantes e relatórios
+            </option>
+
+            <option value="agenda" {% if perfil_atual == "agenda" %}selected{% endif %}>
+                Agenda - reuniões e eventos
+            </option>
+
+            <option value="visualizador" {% if perfil_atual == "visualizador" %}selected{% endif %}>
+                Visualizador - somente consulta
+            </option>
+        </select>
+
+        <label style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+            <input type="checkbox"
+                   name="ativo"
+                   style="width:auto;margin:0;"
+                   {% if not usuario or usuario.ativo %}checked{% endif %}>
+            Usuário ativo
+        </label>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <button class="btn" type="submit">
+                {% if usuario %}
+                    Salvar alterações
+                {% else %}
+                    Criar usuário
+                {% endif %}
+            </button>
+
+            <a href="{{ url_for('usuarios.listar') }}" class="btn btn-secondary">
+                Voltar
+            </a>
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

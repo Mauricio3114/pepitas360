@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+    {% if movimentacao %}
+        <h1>Editar movimentação</h1>
+        <p style="margin-top:8px;color:#94a3b8;">
+            Atualize a entrada ou saída financeira.
+        </p>
+    {% else %}
+        <h1>Nova movimentação</h1>
+        <p style="margin-top:8px;color:#94a3b8;">
+            Cadastre entradas e saídas do fluxo de caixa.
+        </p>
+    {% endif %}
+</div>
+
+<div class="card" style="margin-top:22px;max-width:850px;">
+
+    <form method="POST">
+
+        <label>Tipo</label>
+        {% set tipo_atual = movimentacao.tipo if movimentacao else 'entrada' %}
+        <select name="tipo" required>
+            <option value="entrada" {% if tipo_atual == "entrada" %}selected{% endif %}>
+                Entrada
+            </option>
+            <option value="saida" {% if tipo_atual == "saida" %}selected{% endif %}>
+                Saída
+            </option>
+        </select>
+
+        <label>Descrição</label>
+        <input type="text"
+               name="descricao"
+               required
+               value="{{ movimentacao.descricao if movimentacao else '' }}">
+
+        <label>Categoria</label>
+        {% set categoria_atual = movimentacao.categoria if movimentacao else '' %}
+        <select name="categoria">
+            <option value="" {% if categoria_atual == "" %}selected{% endif %}>Sem categoria</option>
+            <option value="vendas" {% if categoria_atual == "vendas" %}selected{% endif %}>Vendas</option>
+            <option value="servicos" {% if categoria_atual == "servicos" %}selected{% endif %}>Serviços</option>
+            <option value="fornecedor" {% if categoria_atual == "fornecedor" %}selected{% endif %}>Fornecedor</option>
+            <option value="salario" {% if categoria_atual == "salario" %}selected{% endif %}>Salário</option>
+            <option value="aluguel" {% if categoria_atual == "aluguel" %}selected{% endif %}>Aluguel</option>
+            <option value="energia" {% if categoria_atual == "energia" %}selected{% endif %}>Energia</option>
+            <option value="internet" {% if categoria_atual == "internet" %}selected{% endif %}>Internet</option>
+            <option value="impostos" {% if categoria_atual == "impostos" %}selected{% endif %}>Impostos</option>
+            <option value="outros" {% if categoria_atual == "outros" %}selected{% endif %}>Outros</option>
+        </select>
+
+        <label>Valor</label>
+        <input type="number"
+               step="0.01"
+               name="valor"
+               required
+               value="{{ movimentacao.valor if movimentacao else '0' }}">
+
+        <label>Data da movimentação</label>
+        <input type="date"
+               name="data_movimentacao"
+               required
+               value="{{ movimentacao.data_movimentacao.strftime('%Y-%m-%d') if movimentacao else '' }}">
+
+        <label>Observação</label>
+        <textarea name="observacao" rows="3">{{ movimentacao.observacao if movimentacao else '' }}</textarea>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <button class="btn" type="submit">
+                {% if movimentacao %}
+                    Salvar alterações
+                {% else %}
+                    Salvar movimentação
+                {% endif %}
+            </button>
+
+            <a href="{{ url_for('financeiro.index') }}" class="btn btn-secondary">
+                Voltar
+            </a>
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

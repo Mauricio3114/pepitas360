@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+    {% if compromisso %}
+        <h1>Editar compromisso</h1>
+        <p style="margin-top:8px;color:#94a3b8;">
+            Atualize as informações do compromisso selecionado.
+        </p>
+    {% else %}
+        <h1>Novo compromisso</h1>
+        <p style="margin-top:8px;color:#94a3b8;">
+            Cadastre pagamentos, boletos, transferências, reuniões ou eventos.
+        </p>
+    {% endif %}
+</div>
+
+<div class="card" style="margin-top:22px;max-width:850px;">
+
+    <form method="POST" enctype="multipart/form-data">
+
+        <label>Título</label>
+        <input type="text" name="titulo" required
+               value="{{ compromisso.titulo if compromisso else '' }}">
+
+        <label>Descrição</label>
+        <textarea name="descricao" rows="3">{{ compromisso.descricao if compromisso else '' }}</textarea>
+
+        <label>Tipo</label>
+        <select name="tipo" required>
+            {% set tipo_atual = compromisso.tipo if compromisso else '' %}
+            <option value="pagamento" {% if tipo_atual == "pagamento" %}selected{% endif %}>Pagamento</option>
+            <option value="boleto" {% if tipo_atual == "boleto" %}selected{% endif %}>Boleto</option>
+            <option value="transferencia" {% if tipo_atual == "transferencia" %}selected{% endif %}>Transferência</option>
+            <option value="dinheiro" {% if tipo_atual == "dinheiro" %}selected{% endif %}>Dinheiro em espécie</option>
+            <option value="reuniao" {% if tipo_atual == "reuniao" %}selected{% endif %}>Reunião</option>
+            <option value="evento" {% if tipo_atual == "evento" %}selected{% endif %}>Evento</option>
+        </select>
+
+        <label>Forma de pagamento</label>
+        <select name="forma_pagamento">
+            {% set forma_atual = compromisso.forma_pagamento if compromisso else '' %}
+            <option value="" {% if forma_atual == "" %}selected{% endif %}>Não se aplica</option>
+            <option value="pix" {% if forma_atual == "pix" %}selected{% endif %}>PIX</option>
+            <option value="transferencia" {% if forma_atual == "transferencia" %}selected{% endif %}>Transferência</option>
+            <option value="boleto" {% if forma_atual == "boleto" %}selected{% endif %}>Boleto</option>
+            <option value="dinheiro" {% if forma_atual == "dinheiro" %}selected{% endif %}>Dinheiro em espécie</option>
+            <option value="cartao" {% if forma_atual == "cartao" %}selected{% endif %}>Cartão</option>
+        </select>
+
+        <label>Valor</label>
+        <input type="number" step="0.01" name="valor"
+               value="{{ compromisso.valor if compromisso else '0' }}">
+
+        <label>Data de vencimento / evento</label>
+        <input type="date" name="data_vencimento" required
+               value="{{ compromisso.data_vencimento.strftime('%Y-%m-%d') if compromisso else '' }}">
+
+        {% if compromisso %}
+        <label>Status</label>
+        <select name="status">
+            <option value="pendente" {% if compromisso.status == "pendente" %}selected{% endif %}>Pendente</option>
+            <option value="pago" {% if compromisso.status == "pago" %}selected{% endif %}>Pago</option>
+            <option value="cancelado" {% if compromisso.status == "cancelado" %}selected{% endif %}>Cancelado</option>
+        </select>
+        {% endif %}
+
+        <label>Comprovante / Anexo</label>
+
+        {% if compromisso and compromisso.comprovante %}
+            <div style="
+                background:#020617;
+                border:1px solid rgba(255,255,255,.08);
+                padding:14px;
+                border-radius:14px;
+                margin-top:8px;
+                margin-bottom:16px;
+            ">
+                <p style="color:#94a3b8;margin-bottom:10px;">
+                    Já existe um comprovante anexado neste compromisso.
+                </p>
+
+                <a href="{{ url_for('static', filename=compromisso.comprovante) }}"
+                   target="_blank"
+                   class="btn btn-secondary">
+                    Ver comprovante atual
+                </a>
+            </div>
+        {% endif %}
+
+        <input type="file"
+               name="comprovante"
+               accept=".pdf,.png,.jpg,.jpeg,.webp,image/*,application/pdf">
+
+        <p style="color:#94a3b8;font-size:13px;margin-top:-8px;margin-bottom:18px;">
+            Aceita PDF, PNG, JPG, JPEG e WEBP. No celular, pode tirar foto do comprovante.
+        </p>
+
+        <label>Observação</label>
+        <textarea name="observacao" rows="3">{{ compromisso.observacao if compromisso else '' }}</textarea>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <button class="btn" type="submit">
+                {% if compromisso %}
+                    Salvar alterações
+                {% else %}
+                    Salvar compromisso
+                {% endif %}
+            </button>
+
+            {% if compromisso %}
+                <a href="{{ url_for('compromissos.editar', compromisso_id=compromisso.id) }}"
+                   class="btn btn-secondary">
+                    Limpar alteração
+                </a>
+            {% endif %}
+
+            <a href="{{ url_for('compromissos.pagamentos') }}" class="btn btn-secondary">
+                Voltar
+            </a>
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

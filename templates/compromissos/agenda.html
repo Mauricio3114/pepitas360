@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;">
+        <div>
+            <h1>Agenda</h1>
+            <p style="margin-top:8px;color:#94a3b8;">
+                Reuniões, eventos e compromissos administrativos.
+            </p>
+        </div>
+
+        <a href="{{ url_for('compromissos.novo') }}" class="btn">
+            + Novo evento
+        </a>
+    </div>
+</div>
+
+<div class="card" style="margin-top:22px;">
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px;">
+        <div>
+            <label>Buscar evento</label>
+            <input type="text" id="buscaTabela" placeholder="Digite título, descrição, tipo ou data...">
+        </div>
+
+        <div>
+            <label>Status</label>
+            <select id="filtroStatus">
+                <option value="">Todos</option>
+                <option value="pendente">Pendente</option>
+                <option value="pago">Concluído/Pago</option>
+                <option value="cancelado">Cancelado</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Tipo</label>
+            <select id="filtroTipo">
+                <option value="">Todos</option>
+                <option value="reuniao">Reunião</option>
+                <option value="evento">Evento</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-top:22px;overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;min-width:780px;">
+        <thead>
+            <tr style="color:#94a3b8;text-align:left;border-bottom:1px solid rgba(255,255,255,.08);">
+                <th style="padding:16px;">Título</th>
+                <th style="padding:16px;">Tipo</th>
+                <th style="padding:16px;">Data</th>
+                <th style="padding:16px;">Status</th>
+                <th style="padding:16px;">Ações</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for item in compromissos %}
+
+            {% set cor_status = "#1e293b" %}
+            {% set texto_status = item.status %}
+
+            {% if item.status == "pago" %}
+                {% set cor_status = "#166534" %}
+                {% set texto_status = "Concluído" %}
+            {% elif item.status == "pendente" %}
+                {% set cor_status = "#92400e" %}
+                {% set texto_status = "Pendente" %}
+            {% elif item.status == "cancelado" %}
+                {% set cor_status = "#334155" %}
+                {% set texto_status = "Cancelado" %}
+            {% endif %}
+
+            <tr class="linha-tabela"
+                data-status="{{ item.status }}"
+                data-tipo="{{ item.tipo }}"
+                data-busca="{{ item.titulo }} {{ item.descricao or '' }} {{ item.tipo }} {{ item.data_vencimento.strftime('%d/%m/%Y') }} {{ item.status }}"
+                style="border-top:1px solid rgba(255,255,255,.06);">
+
+                <td style="padding:16px;">
+                    <strong>{{ item.titulo }}</strong>
+                    {% if item.descricao %}
+                    <div style="color:#94a3b8;font-size:13px;margin-top:5px;">
+                        {{ item.descricao }}
+                    </div>
+                    {% endif %}
+                </td>
+
+                <td style="padding:16px;">{{ item.tipo }}</td>
+
+                <td style="padding:16px;white-space:nowrap;">
+                    {{ item.data_vencimento.strftime("%d/%m/%Y") }}
+                </td>
+
+                <td style="padding:16px;">
+                    <span style="
+                        background:{{ cor_status }};
+                        padding:8px 14px;
+                        border-radius:999px;
+                        font-size:12px;
+                        font-weight:800;
+                        color:white;
+                    ">
+                        {{ texto_status }}
+                    </span>
+                </td>
+
+                <td style="padding:16px;">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <a href="{{ url_for('compromissos.editar', compromisso_id=item.id) }}"
+                           class="btn btn-secondary"
+                           style="padding:9px 14px;font-size:13px;border-radius:12px;">
+                            Editar
+                        </a>
+
+                        <a href="{{ url_for('compromissos.excluir', compromisso_id=item.id) }}"
+                           onclick="return confirm('Tem certeza que deseja excluir este evento?')"
+                           style="
+                                background:linear-gradient(90deg,#991b1b,#7f1d1d);
+                                color:white;
+                                text-decoration:none;
+                                padding:9px 14px;
+                                border-radius:12px;
+                                font-size:13px;
+                                font-weight:800;
+                                box-shadow:0 10px 20px rgba(0,0,0,.18);
+                           ">
+                            Excluir
+                        </a>
+                    </div>
+                </td>
+            </tr>
+
+            {% else %}
+            <tr>
+                <td colspan="5" style="padding:40px;text-align:center;color:#94a3b8;">
+                    Nenhum evento cadastrado ainda.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p id="semResultados" style="display:none;padding:30px;text-align:center;color:#94a3b8;">
+        Nenhum resultado encontrado.
+    </p>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const busca = document.getElementById("buscaTabela");
+    const filtroStatus = document.getElementById("filtroStatus");
+    const filtroTipo = document.getElementById("filtroTipo");
+    const linhas = document.querySelectorAll(".linha-tabela");
+    const semResultados = document.getElementById("semResultados");
+
+    function filtrarTabela(){
+        const termo = busca.value.toLowerCase();
+        const status = filtroStatus.value.toLowerCase();
+        const tipo = filtroTipo.value.toLowerCase();
+        let visiveis = 0;
+
+        linhas.forEach((linha) => {
+            const texto = linha.dataset.busca.toLowerCase();
+            const linhaStatus = linha.dataset.status.toLowerCase();
+            const linhaTipo = linha.dataset.tipo.toLowerCase();
+
+            const bateBusca = texto.includes(termo);
+            const bateStatus = !status || linhaStatus === status;
+            const bateTipo = !tipo || linhaTipo === tipo;
+
+            if(bateBusca && bateStatus && bateTipo){
+                linha.style.display = "";
+                visiveis++;
+            }else{
+                linha.style.display = "none";
+            }
+        });
+
+        semResultados.style.display = visiveis === 0 ? "block" : "none";
+    }
+
+    busca.addEventListener("input", filtrarTabela);
+    filtroStatus.addEventListener("change", filtrarTabela);
+    filtroTipo.addEventListener("change", filtrarTabela);
+});
+</script>
+
+<style>
+@media(max-width:900px){
+    div[style*="grid-template-columns:2fr 1fr 1fr"]{
+        grid-template-columns:1fr !important;
+    }
+}
+</style>
+
+{% endblock %}

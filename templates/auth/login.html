@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Pepitas360</title>
+
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif;}
+
+        body{
+            min-height:100vh;
+            background:#0f172a;
+            color:white;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:20px;
+        }
+
+        .login-card{
+            width:100%;
+            max-width:460px;
+            background:#111827;
+            border:1px solid rgba(255,255,255,.08);
+            border-radius:24px;
+            padding:34px;
+        }
+
+        h1{font-size:34px;margin-bottom:12px;}
+        p{color:#93c5fd;margin-bottom:32px;}
+
+        label{
+            display:block;
+            margin-bottom:8px;
+            font-weight:700;
+        }
+
+        input{
+            width:100%;
+            padding:15px;
+            border:none;
+            border-radius:14px;
+            margin-bottom:22px;
+            font-size:15px;
+        }
+
+        .btn{
+            background:#22c55e;
+            color:white;
+            padding:14px 24px;
+            border:none;
+            border-radius:14px;
+            cursor:pointer;
+            font-weight:800;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-card">
+        <h1>Pepitas360</h1>
+
+        <p>Sistema Financeiro e Administrativo do Grupo Pepitas</p>
+
+        <form method="POST">
+            <label>E-mail</label>
+            <input type="email" name="email" required>
+
+            <label>Senha</label>
+            <input type="password" name="senha" required>
+
+            <button class="btn" type="submit">Entrar</button>
+        </form>
+    </div>
+
+</body>
+</html>

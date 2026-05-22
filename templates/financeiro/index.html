@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:15px;
+        flex-wrap:wrap;
+    ">
+
+        <div>
+            <h1>Fluxo de Caixa</h1>
+
+            <p style="margin-top:8px;color:#94a3b8;">
+                Controle financeiro completo do Grupo Pepitas.
+            </p>
+        </div>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+
+            <a href="{{ url_for('financeiro.novo') }}" class="btn">
+                + Nova movimentação
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="cards-grid">
+
+    <div class="stat-card">
+        <span>Entradas</span>
+
+        <h2 style="color:#22c55e;">
+            R$ {{ "%.2f"|format(total_entradas) }}
+        </h2>
+    </div>
+
+    <div class="stat-card">
+        <span>Saídas</span>
+
+        <h2 style="color:#ef4444;">
+            R$ {{ "%.2f"|format(total_saidas) }}
+        </h2>
+    </div>
+
+    <div class="stat-card">
+        <span>Saldo</span>
+
+        <h2 style="
+            color:{% if saldo_mes >= 0 %}#22c55e{% else %}#ef4444{% endif %};
+        ">
+            R$ {{ "%.2f"|format(saldo_mes) }}
+        </h2>
+    </div>
+
+    <div class="stat-card">
+        <span>Movimentações</span>
+
+        <h2>
+            {{ movimentacoes|length }}
+        </h2>
+    </div>
+
+</div>
+
+<div class="card" style="margin-top:24px;">
+
+    <div style="margin-bottom:20px;">
+
+        <h2>📊 Filtros e Relatórios</h2>
+
+        <p style="margin-top:6px;color:#94a3b8;">
+            Filtre movimentações por período, categoria e tipo.
+        </p>
+
+    </div>
+
+    <form method="GET">
+
+        <div style="
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:18px;
+        ">
+
+            <div>
+                <label>Data inicial</label>
+
+                <input
+                    type="date"
+                    name="data_inicio"
+                    value="{{ data_inicio.strftime('%Y-%m-%d') }}"
+                >
+            </div>
+
+            <div>
+                <label>Data final</label>
+
+                <input
+                    type="date"
+                    name="data_fim"
+                    value="{{ data_fim.strftime('%Y-%m-%d') }}"
+                >
+            </div>
+
+            <div>
+                <label>Tipo</label>
+
+                <select name="tipo">
+
+                    <option value="">Todos</option>
+
+                    <option
+                        value="entrada"
+                        {% if tipo_filtro == "entrada" %}selected{% endif %}
+                    >
+                        Entrada
+                    </option>
+
+                    <option
+                        value="saida"
+                        {% if tipo_filtro == "saida" %}selected{% endif %}
+                    >
+                        Saída
+                    </option>
+
+                </select>
+            </div>
+
+            <div>
+                <label>Categoria</label>
+
+                <select name="categoria">
+
+                    <option value="">Todas</option>
+
+                    {% for categoria in categorias %}
+
+                    <option
+                        value="{{ categoria }}"
+                        {% if categoria_filtro == categoria %}selected{% endif %}
+                    >
+                        {{ categoria }}
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+            </div>
+
+        </div>
+
+        <div style="
+            display:flex;
+            gap:12px;
+            flex-wrap:wrap;
+            margin-top:22px;
+        ">
+
+            <button class="btn" type="submit">
+                Filtrar relatório
+            </button>
+
+            <a href="{{ url_for('financeiro.index') }}"
+               class="btn btn-secondary">
+                Limpar filtros
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+<div class="card" style="margin-top:24px;overflow-x:auto;">
+
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:15px;
+        flex-wrap:wrap;
+        margin-bottom:20px;
+    ">
+
+        <div>
+            <h2>💵 Movimentações Financeiras</h2>
+
+            <p style="margin-top:6px;color:#94a3b8;">
+                Histórico financeiro detalhado.
+            </p>
+        </div>
+
+        <span style="
+            background:#1e293b;
+            padding:10px 16px;
+            border-radius:999px;
+            font-weight:800;
+        ">
+            {{ movimentacoes|length }} registro(s)
+        </span>
+
+    </div>
+
+    <table style="
+        width:100%;
+        border-collapse:collapse;
+        min-width:980px;
+    ">
+
+        <thead>
+
+            <tr style="
+                color:#94a3b8;
+                text-align:left;
+            ">
+
+                <th style="padding:14px;">Data</th>
+
+                <th style="padding:14px;">Descrição</th>
+
+                <th style="padding:14px;">Tipo</th>
+
+                <th style="padding:14px;">Categoria</th>
+
+                <th style="padding:14px;">Valor</th>
+
+                <th style="padding:14px;">Ações</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for item in movimentacoes %}
+
+            <tr style="
+                border-top:1px solid rgba(255,255,255,.08);
+            ">
+
+                <td style="padding:14px;white-space:nowrap;">
+                    {{ item.data_movimentacao.strftime("%d/%m/%Y") }}
+                </td>
+
+                <td style="padding:14px;">
+
+                    <strong>
+                        {{ item.descricao }}
+                    </strong>
+
+                    {% if item.observacao %}
+
+                    <div style="
+                        color:#94a3b8;
+                        font-size:13px;
+                        margin-top:6px;
+                    ">
+                        {{ item.observacao }}
+                    </div>
+
+                    {% endif %}
+
+                </td>
+
+                <td style="padding:14px;">
+
+                    {% if item.tipo == "entrada" %}
+
+                    <span style="
+                        background:#166534;
+                        padding:7px 12px;
+                        border-radius:999px;
+                        font-size:13px;
+                        font-weight:800;
+                    ">
+                        Entrada
+                    </span>
+
+                    {% else %}
+
+                    <span style="
+                        background:#991b1b;
+                        padding:7px 12px;
+                        border-radius:999px;
+                        font-size:13px;
+                        font-weight:800;
+                    ">
+                        Saída
+                    </span>
+
+                    {% endif %}
+
+                </td>
+
+                <td style="padding:14px;">
+                    {{ item.categoria or "-" }}
+                </td>
+
+                <td style="padding:14px;white-space:nowrap;">
+
+                    <strong style="
+                        color:{% if item.tipo == 'entrada' %}#22c55e{% else %}#ef4444{% endif %};
+                    ">
+                        R$ {{ "%.2f"|format(item.valor) }}
+                    </strong>
+
+                </td>
+
+                <td style="padding:14px;">
+
+                    <div style="
+                        display:flex;
+                        gap:8px;
+                        flex-wrap:wrap;
+                    ">
+
+                        <a
+                            href="{{ url_for('financeiro.editar', movimentacao_id=item.id) }}"
+                            class="btn btn-secondary"
+                            style="
+                                padding:8px 12px;
+                                font-size:13px;
+                            "
+                        >
+                            Editar
+                        </a>
+
+                        <a
+                            href="{{ url_for('financeiro.excluir', movimentacao_id=item.id) }}"
+                            onclick="return confirm('Deseja excluir esta movimentação?')"
+                            style="
+                                background:#991b1b;
+                                color:white;
+                                text-decoration:none;
+                                padding:8px 12px;
+                                border-radius:12px;
+                                font-size:13px;
+                                font-weight:800;
+                            "
+                        >
+                            Excluir
+                        </a>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            {% else %}
+
+            <tr>
+
+                <td
+                    colspan="6"
+                    style="
+                        padding:40px;
+                        text-align:center;
+                        color:#94a3b8;
+                    "
+                >
+                    Nenhuma movimentação encontrada.
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

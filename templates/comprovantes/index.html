@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;">
+        <div>
+            <h1>Central de Comprovantes</h1>
+            <p style="margin-top:8px;color:#94a3b8;">
+                Visualize comprovantes anexados aos pagamentos, boletos e compromissos.
+            </p>
+        </div>
+
+        <span style="background:#1e293b;padding:10px 16px;border-radius:999px;font-weight:800;">
+            {{ comprovantes|length }} arquivo(s)
+        </span>
+    </div>
+</div>
+
+<div class="card" style="margin-top:24px;">
+
+    <h2>🔎 Filtros</h2>
+
+    <form method="GET" style="margin-top:18px;">
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;">
+
+            <div>
+                <label>Data inicial</label>
+                <input type="date" name="data_inicio" value="{{ data_inicio or '' }}">
+            </div>
+
+            <div>
+                <label>Data final</label>
+                <input type="date" name="data_fim" value="{{ data_fim or '' }}">
+            </div>
+
+            <div>
+                <label>Tipo</label>
+                <select name="tipo">
+                    <option value="">Todos</option>
+                    <option value="pagamento" {% if tipo_filtro == "pagamento" %}selected{% endif %}>Pagamento</option>
+                    <option value="boleto" {% if tipo_filtro == "boleto" %}selected{% endif %}>Boleto</option>
+                    <option value="transferencia" {% if tipo_filtro == "transferencia" %}selected{% endif %}>Transferência</option>
+                    <option value="dinheiro" {% if tipo_filtro == "dinheiro" %}selected{% endif %}>Dinheiro</option>
+                    <option value="reuniao" {% if tipo_filtro == "reuniao" %}selected{% endif %}>Reunião</option>
+                    <option value="evento" {% if tipo_filtro == "evento" %}selected{% endif %}>Evento</option>
+                </select>
+            </div>
+
+        </div>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;">
+            <button class="btn" type="submit">
+                Filtrar
+            </button>
+
+            <a href="{{ url_for('comprovantes.index') }}" class="btn btn-secondary">
+                Limpar filtros
+            </a>
+        </div>
+
+    </form>
+
+</div>
+
+<div style="
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:20px;
+    margin-top:24px;
+">
+
+    {% for item in comprovantes %}
+
+    <div class="card" style="padding:20px;">
+
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
+            <div>
+                <h3>{{ item.titulo }}</h3>
+
+                <p style="margin-top:6px;color:#94a3b8;font-size:14px;">
+                    {{ item.tipo }} • {{ item.data_vencimento.strftime("%d/%m/%Y") }}
+                </p>
+            </div>
+
+            <span style="
+                background:#1e293b;
+                padding:7px 12px;
+                border-radius:999px;
+                font-size:12px;
+                font-weight:800;
+                white-space:nowrap;
+            ">
+                {{ item.status }}
+            </span>
+        </div>
+
+        <div style="
+            margin-top:16px;
+            background:#020617;
+            border:1px solid rgba(255,255,255,.08);
+            border-radius:16px;
+            padding:16px;
+        ">
+
+            {% set arquivo = item.comprovante.lower() %}
+
+            {% if arquivo.endswith('.png') or arquivo.endswith('.jpg') or arquivo.endswith('.jpeg') or arquivo.endswith('.webp') %}
+
+                <img src="{{ url_for('static', filename=item.comprovante) }}"
+                     alt="Comprovante"
+                     style="
+                        width:100%;
+                        max-height:220px;
+                        object-fit:cover;
+                        border-radius:14px;
+                        border:1px solid rgba(255,255,255,.08);
+                     ">
+
+            {% else %}
+
+                <div style="
+                    height:160px;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    border-radius:14px;
+                    background:#111827;
+                    color:#94a3b8;
+                    text-align:center;
+                    padding:20px;
+                ">
+                    📄 Arquivo PDF anexado
+                </div>
+
+            {% endif %}
+
+        </div>
+
+        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+
+            <a href="{{ url_for('static', filename=item.comprovante) }}"
+               target="_blank"
+               class="btn">
+                Ver comprovante
+            </a>
+
+            <a href="{{ url_for('compromissos.editar', compromisso_id=item.id) }}"
+               class="btn btn-secondary">
+                Abrir registro
+            </a>
+
+        </div>
+
+    </div>
+
+    {% else %}
+
+    <div class="card" style="grid-column:1/-1;text-align:center;">
+        <h2>Nenhum comprovante encontrado</h2>
+        <p style="margin-top:8px;color:#94a3b8;">
+            Quando você anexar comprovantes nos pagamentos, eles aparecerão aqui.
+        </p>
+    </div>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

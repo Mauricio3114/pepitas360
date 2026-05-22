@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;">
+        <div>
+            <h1>Pagamentos e Agenda</h1>
+            <p style="margin-top:8px;color:#94a3b8;">
+                Controle de pagamentos, boletos, transferências, reuniões e eventos.
+            </p>
+        </div>
+
+        <a href="{{ url_for('compromissos.novo') }}" class="btn">
+            + Novo compromisso
+        </a>
+    </div>
+</div>
+
+<div class="card" style="margin-top:22px;overflow-x:auto;">
+
+    <table style="width:100%;border-collapse:collapse;min-width:900px;">
+        <thead>
+            <tr style="color:#94a3b8;text-align:left;">
+                <th style="padding:14px;">Título</th>
+                <th style="padding:14px;">Tipo</th>
+                <th style="padding:14px;">Forma</th>
+                <th style="padding:14px;">Valor</th>
+                <th style="padding:14px;">Vencimento</th>
+                <th style="padding:14px;">Status</th>
+                <th style="padding:14px;">Ações</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for item in compromissos %}
+
+            {% set cor_status = "#1e293b" %}
+            {% if item.status == "pago" %}
+                {% set cor_status = "#166534" %}
+            {% elif item.status == "pendente" %}
+                {% set cor_status = "#92400e" %}
+            {% elif item.status == "vencido" %}
+                {% set cor_status = "#991b1b" %}
+            {% endif %}
+
+            <tr style="border-top:1px solid rgba(255,255,255,.08);">
+                <td style="padding:14px;">
+                    <strong>{{ item.titulo }}</strong>
+                    {% if item.descricao %}
+                    <div style="color:#94a3b8;font-size:13px;margin-top:4px;">
+                        {{ item.descricao }}
+                    </div>
+                    {% endif %}
+                </td>
+
+                <td style="padding:14px;">{{ item.tipo }}</td>
+                <td style="padding:14px;">{{ item.forma_pagamento or '-' }}</td>
+                <td style="padding:14px;">R$ {{ "%.2f"|format(item.valor) }}</td>
+                <td style="padding:14px;">{{ item.data_vencimento.strftime("%d/%m/%Y") }}</td>
+
+                <td style="padding:14px;">
+                    <span style="background:{{ cor_status }};padding:7px 12px;border-radius:999px;font-size:13px;font-weight:800;">
+                        {{ item.status }}
+                    </span>
+                </td>
+
+                <td style="padding:14px;">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+
+                        <a href="{{ url_for('compromissos.editar', compromisso_id=item.id) }}"
+                           class="btn btn-secondary"
+                           style="padding:8px 12px;font-size:13px;">
+                            Editar
+                        </a>
+
+                        {% if item.status != "pago" %}
+                        <a href="{{ url_for('compromissos.pagar', compromisso_id=item.id) }}"
+                           class="btn"
+                           style="padding:8px 12px;font-size:13px;">
+                            Pago
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('compromissos.pendente', compromisso_id=item.id) }}"
+                           class="btn btn-secondary"
+                           style="padding:8px 12px;font-size:13px;">
+                            Pendente
+                        </a>
+                        {% endif %}
+
+                        <a href="{{ url_for('compromissos.excluir', compromisso_id=item.id) }}"
+                           onclick="return confirm('Tem certeza que deseja excluir este compromisso?')"
+                           style="background:#991b1b;color:white;text-decoration:none;padding:8px 12px;border-radius:12px;font-size:13px;font-weight:800;">
+                            Excluir
+                        </a>
+
+                    </div>
+                </td>
+            </tr>
+
+            {% else %}
+            <tr>
+                <td colspan="7" style="padding:30px;text-align:center;color:#94a3b8;">
+                    Nenhum compromisso cadastrado ainda.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+{% endblock %}

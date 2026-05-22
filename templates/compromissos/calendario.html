@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;">
+        <div>
+            <h1>Calendário Visual</h1>
+            <p style="margin-top:8px;color:#94a3b8;">
+                Visão mensal de pagamentos, eventos, reuniões e vencimentos.
+            </p>
+        </div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <a href="{{ url_for('compromissos.calendario', mes=mes-1, ano=ano) }}" class="btn btn-secondary">
+                ← Mês anterior
+            </a>
+
+            <a href="{{ url_for('compromissos.calendario', mes=mes+1, ano=ano) }}" class="btn btn-secondary">
+                Próximo mês →
+            </a>
+
+            <a href="{{ url_for('compromissos.novo') }}" class="btn">
+                + Novo
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-top:22px;">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
+        <h2>📅 {{ nome_mes }} / {{ ano }}</h2>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap;color:#cbd5e1;font-size:13px;">
+            <span>🔵 Agenda</span>
+            <span>🟡 Pendente</span>
+            <span>🟢 Pago</span>
+            <span>🔴 Vencido</span>
+        </div>
+    </div>
+
+    <div style="
+        display:grid;
+        grid-template-columns:repeat(7,1fr);
+        gap:10px;
+        margin-bottom:10px;
+        color:#94a3b8;
+        font-weight:800;
+        text-align:center;
+    ">
+        <div>Seg</div>
+        <div>Ter</div>
+        <div>Qua</div>
+        <div>Qui</div>
+        <div>Sex</div>
+        <div>Sáb</div>
+        <div>Dom</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:10px;">
+
+        {% for semana in calendario_mes %}
+            {% for dia in semana %}
+
+                {% if dia == 0 %}
+
+                    <div style="
+                        min-height:135px;
+                        background:#020617;
+                        opacity:.35;
+                        border-radius:18px;
+                        border:1px solid rgba(255,255,255,.04);
+                    "></div>
+
+                {% else %}
+
+                    <div style="
+                        min-height:135px;
+                        background:{% if hoje.day == dia and hoje.month == mes and hoje.year == ano %}#1e293b{% else %}#020617{% endif %};
+                        border:1px solid rgba(255,255,255,.08);
+                        border-radius:18px;
+                        padding:12px;
+                        overflow:hidden;
+                    ">
+
+                        <div style="
+                            display:flex;
+                            justify-content:space-between;
+                            align-items:center;
+                            margin-bottom:8px;
+                        ">
+                            <strong>{{ dia }}</strong>
+
+                            {% if compromissos_por_dia.get(dia) %}
+                                <span style="
+                                    background:#334155;
+                                    padding:4px 8px;
+                                    border-radius:999px;
+                                    font-size:11px;
+                                    font-weight:800;
+                                ">
+                                    {{ compromissos_por_dia.get(dia)|length }}
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        {% for item in compromissos_por_dia.get(dia, []) %}
+
+                            {% set cor = "#2563eb" %}
+
+                            {% if item.status == "pago" %}
+                                {% set cor = "#166534" %}
+                            {% elif item.data_vencimento < hoje and item.status != "pago" %}
+                                {% set cor = "#991b1b" %}
+                            {% elif item.tipo in ["pagamento", "boleto", "transferencia", "dinheiro"] %}
+                                {% set cor = "#92400e" %}
+                            {% elif item.tipo in ["reuniao", "evento"] %}
+                                {% set cor = "#1d4ed8" %}
+                            {% endif %}
+
+                            <a href="{{ url_for('compromissos.editar', compromisso_id=item.id) }}"
+                               style="
+                                    display:block;
+                                    background:{{ cor }};
+                                    color:white;
+                                    padding:7px 9px;
+                                    border-radius:10px;
+                                    margin-bottom:6px;
+                                    font-size:12px;
+                                    text-decoration:none;
+                                    white-space:nowrap;
+                                    overflow:hidden;
+                                    text-overflow:ellipsis;
+                               ">
+                                {{ item.titulo }}
+                            </a>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+            {% endfor %}
+        {% endfor %}
+
+    </div>
+
+</div>
+
+<style>
+@media(max-width:900px){
+    div[style*="grid-template-columns:repeat(7,1fr)"]{
+        grid-template-columns:1fr !important;
+    }
+}
+</style>
+
+{% endblock %}

@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+    <h1>Bem-vindo, {{ usuario.nome }}</h1>
+
+    <p style="margin-top:8px;color:#94a3b8;">
+        Visão geral financeira e administrativa do Grupo Pepitas.
+    </p>
+
+    <div style="margin-top:22px;display:flex;gap:12px;flex-wrap:wrap;">
+        <a href="{{ url_for('compromissos.novo') }}" class="btn">
+            + Novo Pagamento
+        </a>
+
+        <a href="{{ url_for('compromissos.novo') }}" class="btn btn-secondary">
+            + Nova Reunião
+        </a>
+    </div>
+</div>
+
+<div class="cards-grid">
+
+    <div class="stat-card">
+        <span>Pagamentos hoje</span>
+        <h2>R$ {{ "%.2f"|format(total_hoje) }}</h2>
+    </div>
+
+    <div class="stat-card">
+        <span>Próximos 7 dias</span>
+        <h2>R$ {{ "%.2f"|format(total_semana) }}</h2>
+    </div>
+
+    <div class="stat-card">
+        <span>Pagamentos do mês</span>
+        <h2>R$ {{ "%.2f"|format(total_mes) }}</h2>
+    </div>
+
+    <div class="stat-card">
+        <span>Alertas</span>
+        <h2>{{ alertas|length }}</h2>
+    </div>
+
+</div>
+
+<div class="card" style="margin-top:25px;">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div>
+            <h2>🔔 Alertas importantes</h2>
+            <p style="margin-top:6px;color:#94a3b8;">
+                Eventos, reuniões e pagamentos próximos do vencimento.
+            </p>
+        </div>
+
+        <span style="background:#1e293b;padding:8px 14px;border-radius:999px;font-weight:800;">
+            {{ alertas|length }} alerta(s)
+        </span>
+    </div>
+
+    <div style="margin-top:18px;">
+
+        {% for alerta in alertas %}
+
+        {% set bg_alerta = "#1e293b" %}
+        {% if alerta.nivel == "medio" %}
+            {% set bg_alerta = "#713f12" %}
+        {% elif alerta.nivel == "alto" %}
+            {% set bg_alerta = "#9a3412" %}
+        {% elif alerta.nivel == "urgente" %}
+            {% set bg_alerta = "#991b1b" %}
+        {% elif alerta.nivel == "vencido" %}
+            {% set bg_alerta = "#450a0a" %}
+        {% endif %}
+
+        <div style="
+            padding:16px;
+            border-radius:16px;
+            background:{{ bg_alerta }};
+            margin-bottom:12px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:12px;
+            flex-wrap:wrap;
+        ">
+
+            <div>
+                <strong>
+                    {{ alerta.icone }} {{ alerta.titulo }}
+                </strong>
+
+                <p style="margin-top:6px;color:#e5e7eb;font-size:14px;">
+                    {{ alerta.mensagem }} • {{ alerta.tipo }}
+                </p>
+            </div>
+
+            <div style="text-align:right;">
+                <strong>
+                    R$ {{ "%.2f"|format(alerta.valor) }}
+                </strong>
+
+                <p style="margin-top:6px;color:#e5e7eb;font-size:14px;">
+                    {{ alerta.data.strftime("%d/%m/%Y") }}
+                </p>
+            </div>
+
+        </div>
+
+        {% else %}
+
+        <p style="margin-top:12px;color:#94a3b8;">
+            Nenhum alerta importante no momento.
+        </p>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+<div style="display:grid;grid-template-columns:1.2fr .8fr;gap:20px;margin-top:25px;">
+
+    <div class="card">
+
+        <h2>📅 Próximos compromissos</h2>
+
+        <div style="margin-top:18px;">
+
+            {% for item in proximos %}
+
+            <div style="
+                padding:16px;
+                border-radius:14px;
+                background:#020617;
+                margin-bottom:12px;
+                border:1px solid rgba(255,255,255,.06);
+            ">
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    gap:10px;
+                    flex-wrap:wrap;
+                ">
+
+                    <div>
+                        <strong>{{ item.titulo }}</strong>
+
+                        <p style="
+                            color:#94a3b8;
+                            margin-top:6px;
+                            font-size:14px;
+                        ">
+                            {{ item.tipo }}
+                        </p>
+                    </div>
+
+                    <div style="text-align:right;">
+
+                        <strong>
+                            R$ {{ "%.2f"|format(item.valor) }}
+                        </strong>
+
+                        <p style="
+                            color:#94a3b8;
+                            margin-top:6px;
+                            font-size:14px;
+                        ">
+                            {{ item.data_vencimento.strftime("%d/%m/%Y") }}
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% else %}
+
+            <p style="margin-top:12px;color:#94a3b8;">
+                Nenhum compromisso cadastrado.
+            </p>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+    <div class="card">
+
+        <h2>⚠️ Vencidos</h2>
+
+        <div style="margin-top:18px;">
+
+            {% for item in vencidos %}
+
+            <div style="
+                padding:14px;
+                border-radius:14px;
+                background:#450a0a;
+                margin-bottom:12px;
+            ">
+
+                <strong>{{ item.titulo }}</strong>
+
+                <p style="margin-top:6px;font-size:14px;">
+                    {{ item.data_vencimento.strftime("%d/%m/%Y") }}
+                </p>
+
+            </div>
+
+            {% else %}
+
+            <p style="margin-top:12px;color:#94a3b8;">
+                Nenhum vencimento pendente.
+            </p>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+@media(max-width:900px){
+    div[style*="grid-template-columns:1.2fr"]{
+        grid-template-columns:1fr !important;
+    }
+}
+</style>
+
+{% endblock %}

@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;">
+        <div>
+            <h1>Relatórios</h1>
+            <p style="margin-top:8px;color:#94a3b8;">
+                Relatórios financeiros, pagamentos, agenda e compromissos do Pepitas360.
+            </p>
+        </div>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+
+            <a href="{{ url_for('relatorios.financeiro_pdf', data_inicio=data_inicio.strftime('%Y-%m-%d'), data_fim=data_fim.strftime('%Y-%m-%d')) }}"
+            class="btn">
+                📄 Baixar PDF
+            </a>
+
+            <a href="{{ url_for('relatorios.financeiro_excel', data_inicio=data_inicio.strftime('%Y-%m-%d'), data_fim=data_fim.strftime('%Y-%m-%d')) }}"
+            class="btn btn-secondary">
+                📊 Baixar Excel
+            </a>
+
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-top:24px;">
+    <h2>🔎 Filtros</h2>
+
+    <form method="GET" style="margin-top:18px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;">
+            <div>
+                <label>Data inicial</label>
+                <input type="date" name="data_inicio" value="{{ data_inicio.strftime('%Y-%m-%d') }}">
+            </div>
+
+            <div>
+                <label>Data final</label>
+                <input type="date" name="data_fim" value="{{ data_fim.strftime('%Y-%m-%d') }}">
+            </div>
+        </div>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;">
+            <button class="btn" type="submit">Visualizar relatório</button>
+
+            <a href="{{ url_for('relatorios.index') }}" class="btn btn-secondary">
+                Limpar filtros
+            </a>
+        </div>
+    </form>
+</div>
+
+<div class="cards-grid">
+    <div class="stat-card">
+        <span>Entradas</span>
+        <h2 style="color:#22c55e;">R$ {{ "%.2f"|format(total_entradas) }}</h2>
+    </div>
+
+    <div class="stat-card">
+        <span>Saídas</span>
+        <h2 style="color:#ef4444;">R$ {{ "%.2f"|format(total_saidas) }}</h2>
+    </div>
+
+    <div class="stat-card">
+        <span>Saldo</span>
+        <h2 style="color:{% if saldo >= 0 %}#22c55e{% else %}#ef4444{% endif %};">
+            R$ {{ "%.2f"|format(saldo) }}
+        </h2>
+    </div>
+
+    <div class="stat-card">
+        <span>Pagamentos/Compromissos</span>
+        <h2>R$ {{ "%.2f"|format(total_pagamentos) }}</h2>
+    </div>
+</div>
+
+<div class="card" style="margin-top:24px;overflow-x:auto;">
+    <h2>💵 Movimentações Financeiras</h2>
+
+    <table style="width:100%;border-collapse:collapse;min-width:900px;margin-top:18px;">
+        <thead>
+            <tr style="color:#94a3b8;text-align:left;">
+                <th style="padding:14px;">Data</th>
+                <th style="padding:14px;">Tipo</th>
+                <th style="padding:14px;">Descrição</th>
+                <th style="padding:14px;">Categoria</th>
+                <th style="padding:14px;">Valor</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for item in movimentacoes %}
+            <tr style="border-top:1px solid rgba(255,255,255,.08);">
+                <td style="padding:14px;">{{ item.data_movimentacao.strftime("%d/%m/%Y") }}</td>
+                <td style="padding:14px;">{{ item.tipo }}</td>
+                <td style="padding:14px;">{{ item.descricao }}</td>
+                <td style="padding:14px;">{{ item.categoria or "-" }}</td>
+                <td style="padding:14px;">R$ {{ "%.2f"|format(item.valor) }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="padding:30px;text-align:center;color:#94a3b8;">
+                    Nenhuma movimentação encontrada.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card" style="margin-top:24px;overflow-x:auto;">
+    <h2>📅 Pagamentos, Agenda e Compromissos</h2>
+
+    <table style="width:100%;border-collapse:collapse;min-width:900px;margin-top:18px;">
+        <thead>
+            <tr style="color:#94a3b8;text-align:left;">
+                <th style="padding:14px;">Data</th>
+                <th style="padding:14px;">Tipo</th>
+                <th style="padding:14px;">Título</th>
+                <th style="padding:14px;">Status</th>
+                <th style="padding:14px;">Valor</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for item in compromissos %}
+            <tr style="border-top:1px solid rgba(255,255,255,.08);">
+                <td style="padding:14px;">{{ item.data_vencimento.strftime("%d/%m/%Y") }}</td>
+                <td style="padding:14px;">{{ item.tipo }}</td>
+                <td style="padding:14px;">{{ item.titulo }}</td>
+                <td style="padding:14px;">{{ item.status }}</td>
+                <td style="padding:14px;">R$ {{ "%.2f"|format(item.valor) }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="padding:30px;text-align:center;color:#94a3b8;">
+                    Nenhum compromisso encontrado.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
